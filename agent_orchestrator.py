@@ -1,8 +1,9 @@
 import os
-import requests
+from datetime import datetime
 from google import genai
+from google.genai import types
 
-# Initialisation du client (récupère automatiquement GEMINI_API_KEY dans l'environnement)
+# Initialisation du client (lit automatiquement GEMINI_API_KEY depuis l'environnement)
 client = genai.Client()
 
 def call_agent(role_instruction, prompt_input):
@@ -10,33 +11,30 @@ def call_agent(role_instruction, prompt_input):
         response = client.models.generate_content(
             model='gemini-2.5-flash',
             contents=prompt_input,
-            config={
-                'system_instruction': role_instruction,
-                'temperature': 0.85,
-            },
+            config=types.GenerateContentConfig(
+                system_instruction=role_instruction,
+                temperature=0.85,
+            ),
         )
         return response.text
     except Exception as e:
         return f"Erreur lors de l'appel à l'agent : {str(e)}"
 
-def send_telegram_message(message):
-    bot_token = os.environ.get("TELEGRAM_BOT_TOKEN")
-    chat_id = os.environ.get("TELEGRAM_CHAT_ID")
+def save_report_to_file(report_content):
+    # Crée le dossier 'reports' s'il n'existe pas
+    os.makedirs("reports", exist_ok=True)
     
-    if not bot_token or not chat_id:
-        print("Erreur : Tokens Telegram manquants.")
-        print(message)
-        return
-
-    url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
-    max_length = 4000
-    for i in range(0, len(message), max_length):
-        chunk = message[i:i+max_length]
-        payload = {"chat_id": chat_id, "text": chunk, "parse_mode": "Markdown"}
-        requests.post(url, json=payload)
+    # Nom du fichier basé sur la date et l'heure
+    date_str = datetime.now().strftime("%Y-%m-%d_%H-%M")
+    filename = f"reports/rapport_{date_str}.md"
+    
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(report_content)
+        
+    print(f">> Rapport sauvegardé avec succès dans le fichier : {filename}")
 
 def daily_autonomous_mission():
-    print("--- [MISSION 0 DH] Démarrage des agents (Zéro Budget) ---")
+    print("--- [MISSION 0 DH] Démarrage des agents (Mode Fichier GitHub) ---")
     
     # 1. Explorateur de Problèmes
     explorer_prompt = (
@@ -60,7 +58,7 @@ def daily_autonomous_mission():
         "(ex: script Python gratuit sur GitHub, template partagé via Google Sheets/Notion gratuit, "
         "site hébergé gratuitement sur Netlify/GitHub Pages, ou contenu organique sur les réseaux)."
     )
-    solution = call_agent(solution_prompt, f"Problème :\n{problem}\nPropose la solution technique 100% gratuite.")
+    solution = call_agent(solution_prompt, f"Problème :\n{problem}\nCritique :\n{criticism}\nPropose la solution technique 100% gratuite.")
 
     # 4. Stratège en Monétisation Organique
     monetization_prompt = (
@@ -71,17 +69,19 @@ def daily_autonomous_mission():
     )
     monetization = call_agent(monetization_prompt, f"Solution :\n{solution}\nÉtablis le plan de monétisation 0 DH.")
 
-    # Rapport Final
+    # Rapport Final Formaté Markdown pour GitHub
     final_report = (
-        f"🚨 *MISSION 0 DH : RAPPORT DE CASH* 🚨\n\n"
-        f"🔥 *1. Le Problème :*\n{problem}\n\n"
-        f"🛑 *2. Filtre Anti-Coût (Critique) :*\n{criticism[:300]}...\n\n"
-        f"🛠️ *3. Solution 100% Gratuite :*\n{solution}\n\n"
-        f"💰 *4. Monétisation & Trafic :*\n{monetization}"
+        f"# 🚨 MISSION 0 DH : RAPPORT DE CASH\n"
+        f"**Date :** {datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n"
+        f"## 🔥 1. Le Problème\n{problem}\n\n"
+        f"## 🛑 2. Filtre Anti-Coût (Critique)\n{criticism}\n\n"
+        f"## 🛠️ 3. Solution 100% Gratuite\n{solution}\n\n"
+        f"## 💰 4. Monétisation & Trafic\n{monetization}\n"
     )
 
-    send_telegram_message(final_report)
-    print("--- [MISSION] Rapport 0 DH envoyé avec succès ! ---")
+    # Sauvegarde du rapport localement dans le dépôt
+    save_report_to_file(final_report)
+    print("--- [MISSION] Rapport sauvegardé dans le dépôt avec succès ! ---")
 
 if __name__ == "__main__":
     daily_autonomous_mission()
