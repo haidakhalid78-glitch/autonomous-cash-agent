@@ -1,31 +1,40 @@
 name: Daily Autonomous Cash Agent
 
 on:
+  workflow_dispatch: # Permet de lancer le workflow manuellement depuis GitHub
   schedule:
-    # Exécution automatique tous les jours à 8h00 UTC
-    - cron: '0 8 * * *'
-  workflow_dispatch: # Permet de le tester manuellement quand tu veux
+    - cron: '0 8 * * *' # S'exécute automatiquement chaque jour à 08h00 UTC
 
 jobs:
-  run-daily-agents:
+  run-agents:
     runs-on: ubuntu-latest
+    
+    # Autorise le bot GitHub à publier/sauvegarder les fichiers dans le dépôt
+    permissions:
+      contents: write
+
     steps:
-      - name: Checkout repository
+      - name: 📥 Récupérer le code du dépôt
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: 🐍 Configurer Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
 
-      - name: Install dependencies
+      - name: 📦 Installer les dépendances
         run: |
-          pip install google-genai requests
+          pip install google-genai
 
-      - name: Run Autonomous Agent Script
+      - name: 🤖 Lancer l'orchestrateur d'agents
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: |
           python agent_orchestrator.py
+
+      - name: 🚀 Sauvegarder et pousser le rapport sur GitHub
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add reports/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "🤖 Ajout automatique du rapport quotidien 0 DH" && git push)
