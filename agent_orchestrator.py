@@ -1,4 +1,5 @@
 import os
+import time
 from datetime import datetime
 from google import genai
 from google.genai import types
@@ -6,19 +7,25 @@ from google.genai import types
 # Initialisation du client (lit automatiquement GEMINI_API_KEY depuis l'environnement)
 client = genai.Client()
 
-def call_agent(role_instruction, prompt_input):
-    try:
-        response = client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=prompt_input,
-            config=types.GenerateContentConfig(
-                system_instruction=role_instruction,
-                temperature=0.85,
-            ),
-        )
-        return response.text
-    except Exception as e:
-        return f"Erreur lors de l'appel à l'agent : {str(e)}"
+def call_agent(role_instruction, prompt_input, max_retries=3, retry_delay=5):
+    """Appelle l'agent avec un système de réessai automatique en cas de déconnexion."""
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model='gemini-3.8-flash',
+                contents=prompt_input,
+                config=types.GenerateContentConfig(
+                    system_instruction=role_instruction,
+                    temperature=0.85,
+                ),
+            )
+            return response.text
+        except Exception as e:
+            print(f"⚠️ Tentative {attempt + 1}/{max_retries} échouée : {str(e)}")
+            if attempt < max_retries - 1:
+                time.sleep(retry_delay)  # Attend quelques secondes avant de relancer
+            else:
+                return f"Erreur lors de l'appel à l'agent après {max_retries} tentatives : {str(e)}"
 
 def save_report_to_file(report_content):
     # Crée le dossier 'reports' s'il n'existe pas
@@ -34,7 +41,7 @@ def save_report_to_file(report_content):
     print(f">> Rapport sauvegardé avec succès dans le fichier : {filename}")
 
 def daily_autonomous_mission():
-    print("--- [MISSION 0 DH] Démarrage des agents (Mode Fichier GitHub) ---")
+    print("--- [MISSION 0 DH] Démarrage des agents (Mode Blindé Anti-Déconnexion) ---")
     
     # 1. Explorateur de Problèmes
     explorer_prompt = (
@@ -43,6 +50,7 @@ def daily_autonomous_mission():
         "mais pour lequel ils recherchent des astuces ou des outils gratuits."
     )
     problem = call_agent(explorer_prompt, "Trouve un pain-point brûlant du moment sur le web.")
+    time.sleep(2) # Pause de courtoisie
     
     # 2. Agent Critique (Chasse aux coûts cachés)
     critic_prompt = (
@@ -51,6 +59,7 @@ def daily_autonomous_mission():
         "détruis l'idée. On ne veut que du 0 dirham."
     )
     criticism = call_agent(critic_prompt, f"Problème :\n{problem}\nAnalyse les risques de coûts cachés.")
+    time.sleep(2)
 
     # 3. Concepteur de Solution (100% Gratuit)
     solution_prompt = (
@@ -59,6 +68,7 @@ def daily_autonomous_mission():
         "site hébergé gratuitement sur Netlify/GitHub Pages, ou contenu organique sur les réseaux)."
     )
     solution = call_agent(solution_prompt, f"Problème :\n{problem}\nCritique :\n{criticism}\nPropose la solution technique 100% gratuite.")
+    time.sleep(2)
 
     # 4. Stratège en Monétisation Organique
     monetization_prompt = (
