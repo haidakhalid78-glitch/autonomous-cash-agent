@@ -12,7 +12,7 @@ def call_agent(role_instruction, prompt_input, max_retries=3, retry_delay=5):
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model='gemini-1.5-flash',
+                model='gemini-2.5-flash',
                 contents=prompt_input,
                 config=types.GenerateContentConfig(
                     system_instruction=role_instruction,
