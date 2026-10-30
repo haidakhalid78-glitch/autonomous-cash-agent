@@ -7,12 +7,12 @@ from google.genai import types
 # Initialisation du client (lit automatiquement GEMINI_API_KEY depuis l'environnement)
 client = genai.Client()
 
-def call_agent(role_instruction, prompt_input, max_retries=3, retry_delay=5):
-    """Appelle l'agent avec un système de réessai automatique en cas de déconnexion ou de surcharge."""
+def call_agent(role_instruction, prompt_input, max_retries=3, retry_delay=6):
+    """Appelle l'agent avec un système de réessai automatique en cas de surcharge."""
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model='gemini-2.5-flash',
+                model='gemini-3.8-flash',
                 contents=prompt_input,
                 config=types.GenerateContentConfig(
                     system_instruction=role_instruction,
@@ -41,7 +41,7 @@ def save_report_to_file(report_content):
     print(f">> Rapport sauvegardé avec succès dans le fichier : {filename}")
 
 def daily_autonomous_mission():
-    print("--- [MISSION 0 DH] Démarrage des agents (Mode Stable & Blindé) ---")
+    print("--- [MISSION 0 DH] Démarrage des agents (Modèle 3.8-flash & Blindé) ---")
     
     # 1. Explorateur de Problèmes
     explorer_prompt = (
@@ -50,7 +50,7 @@ def daily_autonomous_mission():
         "mais pour lequel ils recherchent des astuces ou des outils gratuits."
     )
     problem = call_agent(explorer_prompt, "Trouve un pain-point brûlant du moment sur le web.")
-    time.sleep(3) # Pause de courtoisie
+    time.sleep(4) # Pause de courtoisie pour l'API
     
     # 2. Agent Critique (Chasse aux coûts cachés)
     critic_prompt = (
@@ -59,7 +59,7 @@ def daily_autonomous_mission():
         "détruis l'idée. On ne veut que du 0 dirham."
     )
     criticism = call_agent(critic_prompt, f"Problème :\n{problem}\nAnalyse les risques de coûts cachés.")
-    time.sleep(3)
+    time.sleep(4)
 
     # 3. Concepteur de Solution (100% Gratuit)
     solution_prompt = (
@@ -68,7 +68,7 @@ def daily_autonomous_mission():
         "site hébergé gratuitement sur Netlify/GitHub Pages, ou contenu organique sur les réseaux)."
     )
     solution = call_agent(solution_prompt, f"Problème :\n{problem}\nCritique :\n{criticism}\nPropose la solution technique 100% gratuite.")
-    time.sleep(3)
+    time.sleep(4)
 
     # 4. Stratège en Monétisation Organique
     monetization_prompt = (
