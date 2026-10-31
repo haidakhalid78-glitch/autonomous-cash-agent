@@ -7,8 +7,8 @@ from google.genai import types
 # Initialisation du client (lit automatiquement GEMINI_API_KEY depuis l'environnement)
 client = genai.Client()
 
-def call_agent(role_instruction, prompt_input, max_retries=5, retry_delay=10):
-    """Appelle l'agent avec un système de réessai automatique renforcé en cas de surcharge (503)."""
+def call_agent(role_instruction, prompt_input, max_retries=6, retry_delay=15):
+    """Appelle l'agent avec un système de réessai automatique prolongé (backoff) pour contrer les erreurs 503."""
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
@@ -23,9 +23,10 @@ def call_agent(role_instruction, prompt_input, max_retries=5, retry_delay=10):
         except Exception as e:
             print(f"⚠️ Tentative {attempt + 1}/{max_retries} échouée : {str(e)}")
             if attempt < max_retries - 1:
+                print(f"⏳ Attente de {retry_delay} secondes avant le prochain essai...")
                 time.sleep(retry_delay)  # Pause longue pour laisser le serveur respirer
             else:
-                return f"⚠️ Erreur de surcharge persistante (503) après {max_retries} tentatives. Veuillez relancer le workflow plus tard."
+                return f"⚠️ Erreur de surcharge persistante (503) après {max_retries} tentatives. Les serveurs sont saturés, veuillez relancer plus tard."
 
 def save_report_to_file(report_content):
     # Crée le dossier 'reports' s'il n'existe pas
@@ -41,7 +42,7 @@ def save_report_to_file(report_content):
     print(f">> Rapport sauvegardé avec succès dans le fichier : {filename}")
 
 def daily_autonomous_mission():
-    print("--- [MISSION 0 DH] Démarrage des agents (Mode Anti-Surcharge 503) ---")
+    print("--- [MISSION 0 DH] Démarrage des agents (Mode Anti-Surcharge 503 - Pause 15s) ---")
     
     # 1. Explorateur de Problèmes
     explorer_prompt = (
@@ -50,7 +51,7 @@ def daily_autonomous_mission():
         "mais pour lequel ils recherchent des astuces ou des outils gratuits."
     )
     problem = call_agent(explorer_prompt, "Trouve un pain-point brûlant du moment sur le web.")
-    time.sleep(8) # Pause de sécurité
+    time.sleep(10) # Pause de sécurité entre les agents
     
     # 2. Agent Critique (Chasse aux coûts cachés)
     critic_prompt = (
@@ -59,7 +60,7 @@ def daily_autonomous_mission():
         "détruis l'idée. On ne veut que du 0 dirham."
     )
     criticism = call_agent(critic_prompt, f"Problème :\n{problem}\nAnalyse les risques de coûts cachés.")
-    time.sleep(8)
+    time.sleep(10)
 
     # 3. Concepteur de Solution (100% Gratuit)
     solution_prompt = (
@@ -68,7 +69,7 @@ def daily_autonomous_mission():
         "site hébergé gratuitement sur Netlify/GitHub Pages, ou contenu organique sur les réseaux)."
     )
     solution = call_agent(solution_prompt, f"Problème :\n{problem}\nCritique :\n{criticism}\nPropose la solution technique 100% gratuite.")
-    time.sleep(8)
+    time.sleep(10)
 
     # 4. Stratège en Monétisation Organique
     monetization_prompt = (
@@ -78,7 +79,7 @@ def daily_autonomous_mission():
         "Donne le plan d'action d'acquisition 100% organique (sans un seul centime de pub)."
     )
     monetization = call_agent(monetization_prompt, f"Solution :\n{solution}\nÉtablis le plan de monétisation 0 DH.")
-    time.sleep(8)
+    time.sleep(10)
 
     # 5. Rédacteur de Contenu (TikTok & Reddit)
     content_prompt = (
