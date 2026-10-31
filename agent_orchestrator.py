@@ -41,7 +41,7 @@ def save_report_to_file(report_content):
     print(f">> Rapport sauvegardé avec succès dans le fichier : {filename}")
 
 def daily_autonomous_mission():
-    print("--- [MISSION 0 DH] Démarrage des agents (Modèle 3.8-flash & Blindé) ---")
+    print("--- [MISSION 0 DH] Démarrage des 5 agents (Mode Fichier GitHub & Contenu Prêt) ---")
     
     # 1. Explorateur de Problèmes
     explorer_prompt = (
@@ -50,7 +50,7 @@ def daily_autonomous_mission():
         "mais pour lequel ils recherchent des astuces ou des outils gratuits."
     )
     problem = call_agent(explorer_prompt, "Trouve un pain-point brûlant du moment sur le web.")
-    time.sleep(4) # Pause de courtoisie pour l'API
+    time.sleep(4) # Pause de sécurité
     
     # 2. Agent Critique (Chasse aux coûts cachés)
     critic_prompt = (
@@ -78,6 +78,15 @@ def daily_autonomous_mission():
         "Donne le plan d'action d'acquisition 100% organique (sans un seul centime de pub)."
     )
     monetization = call_agent(monetization_prompt, f"Solution :\n{solution}\nÉtablis le plan de monétisation 0 DH.")
+    time.sleep(4)
+
+    # 5. Rédacteur de Contenu (TikTok & Reddit)
+    content_prompt = (
+        "Tu es un créateur de contenu viral spécialisé dans l'acquisition 0 DH. "
+        "Rédige un script de vidéo courte TikTok/Shorts de 15 secondes ultra-accrocheur (avec scènes et voix off) "
+        "ainsi qu'un post complet pour Reddit (titre + corps du texte) prêt à être publié."
+    )
+    marketing_content = call_agent(content_prompt, f"Solution :\n{solution}\nMonétisation :\n{monetization}\nRédige le contenu prêt à publier.")
 
     # Rapport Final Formaté Markdown pour GitHub
     final_report = (
@@ -86,7 +95,8 @@ def daily_autonomous_mission():
         f"## 🔥 1. Le Problème\n{problem}\n\n"
         f"## 🛑 2. Filtre Anti-Coût (Critique)\n{criticism}\n\n"
         f"## 🛠️ 3. Solution 100% Gratuite\n{solution}\n\n"
-        f"## 💰 4. Monétisation & Trafic\n{monetization}\n"
+        f"## 💰 4. Monétisation & Trafic\n{monetization}\n\n"
+        f"## 🎬 5. Contenus Prêts à Publier (TikTok & Reddit)\n{marketing_content}\n"
     )
 
     # Sauvegarde du rapport localement dans le dépôt
